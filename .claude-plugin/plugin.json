@@ -1,0 +1,20 @@
+{
+  "name": "usage-gate",
+  "version": "1.0.0",
+  "description": "Automatically switches sub-agent models from opus to sonnet based on real-time Anthropic Usage API percentages. Prevents hitting rate limits by gating expensive model calls when usage thresholds are exceeded.",
+  "author": {
+    "name": "jung-wankim"
+  },
+  "homepage": "https://github.com/jung-wankim/usage-gate",
+  "repository": "https://github.com/jung-wankim/usage-gate",
+  "license": "MIT",
+  "keywords": [
+    "usage",
+    "rate-limit",
+    "model-switching",
+    "cost-optimization",
+    "opus",
+    "sonnet",
+    "auto-gate"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "usage-gate",
+  "owner": {
+    "name": "jung-wankim",
+    "email": ""
+  },
+  "metadata": {
+    "description": "Auto-switch sub-agent models based on real-time usage percentage",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "usage-gate",
+      "source": "./",
+      "description": "Tracks Anthropic API usage (5h/7d rolling limits) and automatically blocks opus sub-agent calls when thresholds are exceeded, forcing sonnet fallback. Includes real-time usage display on every prompt.",
+      "category": "monitoring",
+      "tags": [
+        "usage",
+        "rate-limit",
+        "model-switching",
+        "cost-optimization"
+      ]
+    }
+  ],
+  "version": "1.0.0"
+}

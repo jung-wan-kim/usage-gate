@@ -1,0 +1,18 @@
+{
+  "name": "usage-gate",
+  "version": "1.0.0",
+  "description": "Claude Code plugin that auto-switches sub-agent models based on real-time Anthropic usage percentages",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "usage",
+    "rate-limit",
+    "model-switching"
+  ],
+  "author": "jung-wankim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jung-wankim/usage-gate"
+  }
+}
