@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/model-gate.sh"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/model-gate.js"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/usage-tracker.sh"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/usage-tracker.js"
           }
         ]
       }

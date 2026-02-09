@@ -7,13 +7,13 @@ A Claude Code plugin that automatically switches sub-agent models from **opus to
 ```
 You submit a prompt
   ↓
-usage-tracker.sh fetches real-time usage from Anthropic API
+usage-tracker.js fetches real-time usage from Anthropic API
   → Caches result (60s TTL)
   → Shows usage warning if approaching threshold
   ↓
 Claude wants to spawn a sub-agent (Task tool)
   ↓
-model-gate.sh checks cached usage
+model-gate.js checks cached usage
   → Usage < 90%  →  ALLOW (opus OK)
   → Usage >= 90% + model:"sonnet"  →  ALLOW
   → Usage >= 90% + no model specified  →  BLOCK (exit 2)
@@ -61,9 +61,10 @@ Set thresholds via environment variables in your Claude Code settings:
 ## Requirements
 
 - **Claude Code** with plugin support
-- **python3** (for JSON parsing)
-- **curl** (for API calls)
-- **macOS** or **Linux**
+- **Node.js** (bundled with Claude Code)
+- **macOS**, **Linux**, or **Windows**
+
+No additional dependencies needed. Uses only Node.js built-in modules.
 
 ### Authentication
 
@@ -71,7 +72,8 @@ The plugin retrieves your OAuth token automatically:
 
 1. **Environment variable**: `ANTHROPIC_ACCESS_TOKEN` (all platforms)
 2. **macOS Keychain**: Reads from `Claude Code-credentials` (automatic)
-3. **Credential files**: `~/.claude/credentials.json` or `~/.config/claude/credentials.json`
+3. **Windows Credential Manager**: Reads from stored credentials (automatic)
+4. **Credential files**: `~/.claude/credentials.json` or `~/.config/claude/credentials.json` (Linux)
 
 ## How the Gate Works
 
