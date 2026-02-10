@@ -79,15 +79,19 @@ You can also manually set thresholds via environment variables in your Claude Co
 
 ### Configuration Strategies
 
-**Conservative** (Early switch, maximize cost savings):
+**Conservative** (Recommended - Early switch, maximize cost savings):
 - 5H: 70% → sonnet
 - 7D: 70% → sonnet
 
-**Balanced** (Recommended):
+**Balanced**:
+- 5H: 80% → sonnet
+- 7D: 80% → sonnet
+
+**Aggressive** (Use opus as much as possible):
 - 5H: 90% → sonnet
 - 7D: 90% → sonnet
 
-**Aggressive** (Use opus as much as possible):
+**Very Aggressive** (Almost no limits):
 - 5H: 95% → haiku
 - 7D: 95% → haiku
 

@@ -85,16 +85,16 @@ Use **AskUserQuestion** tool:
       "multiSelect": false,
       "options": [
         {
-          "label": "70% → sonnet",
-          "description": "매우 보수적. 일찍 전환하여 비용 절감을 극대화합니다."
+          "label": "70% → sonnet (권장)",
+          "description": "보수적. 일찍 전환하여 비용 절감을 극대화하고 안전한 마진을 확보합니다."
         },
         {
           "label": "80% → sonnet",
-          "description": "보수적. 안전한 마진을 확보합니다."
+          "description": "균형. 적당한 마진을 유지합니다."
         },
         {
-          "label": "90% → sonnet (권장)",
-          "description": "기본 설정. 균형있는 선택입니다."
+          "label": "90% → sonnet",
+          "description": "관대. Opus를 최대한 사용합니다."
         },
         {
           "label": "95% → haiku",
@@ -127,16 +127,16 @@ Use **AskUserQuestion** tool:
       "multiSelect": false,
       "options": [
         {
-          "label": "70% → sonnet",
-          "description": "매우 보수적. 일찍 전환하여 비용 절감을 극대화합니다."
+          "label": "70% → sonnet (권장)",
+          "description": "보수적. 일찍 전환하여 비용 절감을 극대화하고 안전한 마진을 확보합니다."
         },
         {
           "label": "80% → sonnet",
-          "description": "보수적. 안전한 마진을 확보합니다."
+          "description": "균형. 적당한 마진을 유지합니다."
         },
         {
-          "label": "90% → sonnet (권장)",
-          "description": "기본 설정. 균형있는 선택입니다."
+          "label": "90% → sonnet",
+          "description": "관대. Opus를 최대한 사용합니다."
         },
         {
           "label": "95% → haiku",
