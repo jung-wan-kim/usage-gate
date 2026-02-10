@@ -14,11 +14,10 @@ usage-tracker.js fetches real-time usage from Anthropic API
 Claude wants to spawn a sub-agent (Task tool)
   ↓
 model-gate.js checks cached usage
-  → Usage < 90%  →  ALLOW (opus OK)
-  → Usage >= 90% + model:"sonnet"  →  ALLOW
-  → Usage >= 90% + no model specified  →  BLOCK (exit 2)
+  → Usage < threshold  →  ALLOW (opus OK)
+  → Usage >= threshold →  AUTO-SWITCH model via updatedInput
   ↓
-Claude automatically retries with model: "sonnet"
+Task executes with fallback model (sonnet/haiku) — no retry needed
 ```
 
 ## Installation
@@ -118,25 +117,25 @@ The plugin retrieves your OAuth token automatically:
 
 ## How the Gate Works
 
-When usage exceeds the threshold:
+When usage exceeds the threshold, the hook **automatically injects** the fallback model into the Task parameters using `updatedInput`. No blocking, no retry — the model is switched transparently in a single call.
 
-1. Claude tries to call `Task({ subagent_type: "...", prompt: "..." })`
-2. The PreToolUse hook **blocks** the call with exit code 2
-3. Claude sees the error message showing which threshold was exceeded (5H or 7D)
-4. Claude **automatically retries** with the appropriate fallback model (`sonnet` or `haiku`)
-5. The hook detects the fallback model in the parameters and **allows** the call
+1. Claude calls `Task({ subagent_type: "...", prompt: "..." })`
+2. The PreToolUse hook detects usage exceeds threshold
+3. Hook injects `model: "sonnet"` (or `"haiku"`) into the Task parameters via `updatedInput`
+4. Task executes immediately with the fallback model
 
-This happens transparently - you don't need to do anything.
+No retry, no error message, no user intervention needed.
 
 ### Smart Fallback Selection
 
-- **5H limit exceeded** → Uses `CLAUDE_FALLBACK_MODEL_5H` (default: `sonnet`)
-- **7D limit exceeded** → Uses `CLAUDE_FALLBACK_MODEL_7D` (default: `sonnet`)
+- **5H limit exceeded** → Auto-injects `CLAUDE_FALLBACK_MODEL_5H` (default: `sonnet`)
+- **7D limit exceeded** → Auto-injects `CLAUDE_FALLBACK_MODEL_7D` (default: `sonnet`)
 - **Both exceeded** → Uses the 7D fallback (more conservative choice)
+- **Already using sonnet/haiku** → Passes through unchanged
 
 ### Disabling the Gate
 
-Set `CLAUDE_USAGE_GATE_ENABLED=false` to temporarily disable the gate without removing the plugin. Usage tracking will continue, but no blocking will occur.
+Set `CLAUDE_USAGE_GATE_ENABLED=false` to temporarily disable the gate without removing the plugin. Usage tracking will continue, but no model switching will occur.
 
 ## License
 
