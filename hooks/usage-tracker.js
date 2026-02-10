@@ -20,6 +20,9 @@ const CACHE_FILE = path.join(CACHE_DIR, "claude-usage-gate-cache.json");
 const LIMIT_5H = parseInt(process.env.CLAUDE_OPUS_LIMIT_5H || "90", 10);
 const LIMIT_7D = parseInt(process.env.CLAUDE_OPUS_LIMIT_7D || "90", 10);
 const CACHE_TTL = parseInt(process.env.CLAUDE_USAGE_CACHE_TTL || "60", 10);
+const FALLBACK_5H = process.env.CLAUDE_FALLBACK_MODEL_5H || "sonnet";
+const FALLBACK_7D = process.env.CLAUDE_FALLBACK_MODEL_7D || "sonnet";
+const GATE_ENABLED = process.env.CLAUDE_USAGE_GATE_ENABLED !== "false";
 
 // --- OAuth token retrieval (cross-platform) ---
 function getToken() {
@@ -138,18 +141,22 @@ function fetchUsage(token) {
 function displayStatus(data) {
   const u5h = data.five_hour?.utilization ?? 0;
   const u7d = data.seven_day?.utilization ?? 0;
-  const exceeded = u5h >= LIMIT_5H || u7d >= LIMIT_7D;
-  const warning = u5h >= LIMIT_5H - 15 || u7d >= LIMIT_7D - 15;
+  const ex5h = u5h >= LIMIT_5H;
+  const ex7d = u7d >= LIMIT_7D;
+  const exceeded = ex5h || ex7d;
 
-  if (exceeded) {
+  if (!GATE_ENABLED) {
     process.stderr.write(
-      `⚡ [Usage Gate] 5h:${u5h}% 7d:${u7d}% | Sub-agent: sonnet auto-applied\n`
+      `📊 [Usage Gate OFF] 5h:${u5h}%|${LIMIT_5H}% 7d:${u7d}%|${LIMIT_7D}%\n`
     );
-  } else if (warning) {
-    process.stderr.write(
-      `📊 [Usage Gate] 5h:${u5h}% 7d:${u7d}% | Approaching threshold (${LIMIT_5H}%)\n`
-    );
+    return;
   }
+
+  const s5h = ex5h ? `${u5h}%>${LIMIT_5H}%→${FALLBACK_5H}` : `${u5h}%/${LIMIT_5H}%`;
+  const s7d = ex7d ? `${u7d}%>${LIMIT_7D}%→${FALLBACK_7D}` : `${u7d}%/${LIMIT_7D}%`;
+  const icon = exceeded ? "⚡" : "📊";
+
+  process.stderr.write(`${icon} [Usage Gate] 5h:${s5h} 7d:${s7d}\n`);
 }
 
 // --- Main ---
