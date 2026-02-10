@@ -1,6 +1,6 @@
 # usage-gate
 
-A Claude Code plugin that automatically switches sub-agent models from **opus to sonnet** when your Anthropic API usage approaches rate limits.
+A Claude Code plugin that automatically switches sub-agent models from **opus to sonnet/haiku** when your Anthropic API usage approaches rate limits. Fully configurable via interactive setup command.
 
 ## How It Works
 
@@ -35,14 +35,34 @@ claude plugin add github:jung-wankim/usage-gate
 
 ## Configuration
 
-Set thresholds via environment variables in your Claude Code settings:
+### Quick Setup (Recommended)
+
+Use the interactive setup command:
+
+```bash
+/usage-gate:setup
+```
+
+This will guide you through:
+1. **Enable/Disable** - Turn usage-gate on or off
+2. **5H Threshold** - Set 5-hour usage limit and fallback model
+3. **7D Threshold** - Set 7-day usage limit and fallback model
+
+All settings are saved to `~/.claude/settings.json` automatically.
+
+### Manual Configuration
+
+You can also manually set thresholds via environment variables in your Claude Code settings:
 
 ```json
 // ~/.claude/settings.json
 {
   "env": {
+    "CLAUDE_USAGE_GATE_ENABLED": "true",
     "CLAUDE_OPUS_LIMIT_5H": "90",
+    "CLAUDE_FALLBACK_MODEL_5H": "sonnet",
     "CLAUDE_OPUS_LIMIT_7D": "90",
+    "CLAUDE_FALLBACK_MODEL_7D": "sonnet",
     "CLAUDE_USAGE_CACHE_TTL": "60"
   }
 }
@@ -50,13 +70,30 @@ Set thresholds via environment variables in your Claude Code settings:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `CLAUDE_USAGE_GATE_ENABLED` | `true` | Enable/disable the usage gate |
 | `CLAUDE_OPUS_LIMIT_5H` | `90` | 5-hour usage threshold (%) |
+| `CLAUDE_FALLBACK_MODEL_5H` | `sonnet` | Model to use when 5H limit exceeded (`sonnet` or `haiku`) |
 | `CLAUDE_OPUS_LIMIT_7D` | `90` | 7-day usage threshold (%) |
+| `CLAUDE_FALLBACK_MODEL_7D` | `sonnet` | Model to use when 7D limit exceeded (`sonnet` or `haiku`) |
 | `CLAUDE_USAGE_CACHE_TTL` | `60` | API cache TTL (seconds) |
+
+### Configuration Strategies
+
+**Conservative** (Early switch, maximize cost savings):
+- 5H: 70% → sonnet
+- 7D: 70% → sonnet
+
+**Balanced** (Recommended):
+- 5H: 90% → sonnet
+- 7D: 90% → sonnet
+
+**Aggressive** (Use opus as much as possible):
+- 5H: 95% → haiku
+- 7D: 95% → haiku
 
 ## Slash Commands
 
-- `/usage-gate:setup` - Check current usage and configure thresholds
+- `/usage-gate:setup` - **Interactive configuration** - Set thresholds, fallback models, and enable/disable the gate
 
 ## Requirements
 
@@ -81,10 +118,21 @@ When usage exceeds the threshold:
 
 1. Claude tries to call `Task({ subagent_type: "...", prompt: "..." })`
 2. The PreToolUse hook **blocks** the call with exit code 2
-3. Claude sees the error message and **automatically retries** with `model: "sonnet"`
-4. The hook detects `"sonnet"` in the parameters and **allows** the call
+3. Claude sees the error message showing which threshold was exceeded (5H or 7D)
+4. Claude **automatically retries** with the appropriate fallback model (`sonnet` or `haiku`)
+5. The hook detects the fallback model in the parameters and **allows** the call
 
 This happens transparently - you don't need to do anything.
+
+### Smart Fallback Selection
+
+- **5H limit exceeded** → Uses `CLAUDE_FALLBACK_MODEL_5H` (default: `sonnet`)
+- **7D limit exceeded** → Uses `CLAUDE_FALLBACK_MODEL_7D` (default: `sonnet`)
+- **Both exceeded** → Uses the 7D fallback (more conservative choice)
+
+### Disabling the Gate
+
+Set `CLAUDE_USAGE_GATE_ENABLED=false` to temporarily disable the gate without removing the plugin. Usage tracking will continue, but no blocking will occur.
 
 ## License
 
