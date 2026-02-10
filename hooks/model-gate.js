@@ -3,11 +3,10 @@
 // PreToolUse Hook: Auto-switch sub-agent models based on real-time usage %
 //
 // Reads cached usage from /tmp/claude-usage-gate-cache.json
-// and blocks opus Task calls when usage exceeds thresholds.
+// and automatically injects fallback model when usage exceeds thresholds.
 //
-// Exit codes:
-//   0 = ALLOW
-//   2 = BLOCK (Claude will retry with model: "sonnet")
+// Uses `updatedInput` to modify Task parameters transparently.
+// Exit code is always 0 (allow) - model is switched silently.
 
 const fs = require("fs");
 const os = require("os");
@@ -25,15 +24,12 @@ const FALLBACK_MODEL_5H = process.env.CLAUDE_FALLBACK_MODEL_5H || "sonnet";
 const FALLBACK_MODEL_7D = process.env.CLAUDE_FALLBACK_MODEL_7D || "sonnet";
 const GATE_ENABLED = process.env.CLAUDE_USAGE_GATE_ENABLED !== "false";
 
-function getToolInput() {
-  // Try argv first (passed as $2 by Claude Code)
-  if (process.argv[3]) return process.argv[3];
-
-  // Try reading stdin (non-blocking)
+function readStdin() {
   try {
-    return fs.readFileSync("/dev/stdin", "utf8");
+    const raw = fs.readFileSync("/dev/stdin", "utf8");
+    return JSON.parse(raw);
   } catch {
-    return "";
+    return null;
   }
 }
 
@@ -54,43 +50,50 @@ function main() {
   const u5h = data.five_hour?.utilization ?? 0;
   const u7d = data.seven_day?.utilization ?? 0;
 
-  // Under threshold = allow
+  // Under threshold = allow as-is
   if (u5h < LIMIT_5H && u7d < LIMIT_7D) process.exit(0);
 
-  // Check if model param specifies a non-opus model
-  const toolInput = getToolInput().toLowerCase();
-  if (
-    toolInput.includes("model") &&
-    (toolInput.includes("sonnet") || toolInput.includes("haiku"))
-  ) {
+  // Parse stdin to get tool_input
+  const stdinData = readStdin();
+  const toolInput = stdinData?.tool_input || {};
+
+  // Already using a non-opus model = allow as-is
+  const currentModel = (toolInput.model || "").toLowerCase();
+  if (currentModel === "sonnet" || currentModel === "haiku") {
     process.exit(0);
   }
 
-  // Determine which limit was exceeded and corresponding fallback model
-  let exceededLimit = "";
-  let fallbackModel = "";
+  // Determine fallback model
+  let fallbackModel;
+  let reason;
 
   if (u5h >= LIMIT_5H && u7d >= LIMIT_7D) {
-    // Both exceeded - use 7D fallback (more conservative)
-    exceededLimit = `5시간(${u5h}%) 및 7일(${u7d}%)`;
     fallbackModel = FALLBACK_MODEL_7D;
+    reason = `5h:${u5h}%/${LIMIT_5H}% 7d:${u7d}%/${LIMIT_7D}%`;
   } else if (u5h >= LIMIT_5H) {
-    exceededLimit = `5시간(${u5h}%)`;
     fallbackModel = FALLBACK_MODEL_5H;
-  } else if (u7d >= LIMIT_7D) {
-    exceededLimit = `7일(${u7d}%)`;
+    reason = `5h:${u5h}%/${LIMIT_5H}%`;
+  } else {
     fallbackModel = FALLBACK_MODEL_7D;
+    reason = `7d:${u7d}%/${LIMIT_7D}%`;
   }
 
-  // Block
-  const msg = [
-    `⚡ [Usage Gate] ${exceededLimit} 사용률이 임계값을 초과했습니다.`,
-    `   ${fallbackModel} 모델로 전환하세요.`,
-    `   Example: Task({ ..., model: "${fallbackModel}" })`,
-  ].join("\n");
+  // Auto-switch: merge original tool_input + override model
+  const updatedInput = Object.assign({}, toolInput, {
+    model: fallbackModel,
+  });
 
-  process.stderr.write(msg + "\n");
-  process.exit(2);
+  const output = {
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "allow",
+      permissionDecisionReason: `[Usage Gate] ${reason} → auto-switched to ${fallbackModel}`,
+      updatedInput,
+    },
+  };
+
+  process.stdout.write(JSON.stringify(output));
+  process.exit(0);
 }
 
 main();
