@@ -94,6 +94,56 @@ You can also manually set thresholds via environment variables in your Claude Co
 - 5H: 95% → haiku
 - 7D: 95% → haiku
 
+## Status Line
+
+usage-gate includes a persistent status line that displays gate status under the Claude Code prompt.
+
+### Standalone Mode
+
+```json
+// ~/.claude/settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node ~/.claude/plugins/cache/usage-gate/usage-gate/1.0.0/statusline/index.js"
+  }
+}
+```
+
+### Chain Mode (with claude-dashboard)
+
+Run alongside another statusline plugin by setting `USAGE_GATE_CHAIN_CMD`:
+
+```json
+// ~/.claude/settings.json
+{
+  "env": {
+    "USAGE_GATE_CHAIN_CMD": "node ~/.claude/plugins/cache/claude-dashboard/claude-dashboard/1.3.0/dist/index.js"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node ~/.claude/plugins/cache/usage-gate/usage-gate/1.0.0/statusline/index.js"
+  }
+}
+```
+
+**Output example** (chain mode):
+```
+🤖 Opus │ ░░░░░ │ 30% │ 60K/200K │ $1.25 │ 5h: 26% │ 7d: 80%   ← claude-dashboard
+⏱ 3분 │ 🔥 2/min                                                  ← claude-dashboard
+Gate ACTIVE │ 5h 25%/70% │ 7d 80%/70% →S                          ← usage-gate
+```
+
+### Status Indicators
+
+| Display | Meaning |
+|---------|---------|
+| `Gate standby` (green) | Gate enabled, usage below all thresholds |
+| `Gate ACTIVE` (orange/red) | Usage exceeded a threshold, auto-switching active |
+| `Gate OFF` | Gate disabled via settings |
+| `→S` | Fallback to Sonnet |
+| `→H` | Fallback to Haiku |
+
 ## Slash Commands
 
 - `/usage-gate:setup` - **Interactive configuration** - Set thresholds, fallback models, and enable/disable the gate

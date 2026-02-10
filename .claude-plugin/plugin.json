@@ -1,7 +1,7 @@
 {
   "name": "usage-gate",
-  "version": "1.0.0",
-  "description": "Automatically switches sub-agent models from opus to sonnet based on real-time Anthropic Usage API percentages. Prevents hitting rate limits by gating expensive model calls when usage thresholds are exceeded.",
+  "version": "1.1.0",
+  "description": "Automatically switches sub-agent models from opus to sonnet based on real-time Anthropic Usage API percentages. Includes a persistent status line showing gate status, thresholds, and fallback models.",
   "author": {
     "name": "jung-wankim"
   },
@@ -15,6 +15,7 @@
     "cost-optimization",
     "opus",
     "sonnet",
-    "auto-gate"
+    "auto-gate",
+    "statusline"
   ]
 }
